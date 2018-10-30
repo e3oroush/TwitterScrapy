@@ -4,3 +4,4 @@ Data*
 *.jl
 *.pyc
 .caches/
+.vscode

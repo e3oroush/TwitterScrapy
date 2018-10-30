@@ -8,10 +8,9 @@ import time
 import logging
 import sys
 import os
+import urllib
 from langdetect import detect_langs
 
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)) + '/..')
-from utils import mkdirs
 try:
     from urllib import quote  # Python 2.X
 except ImportError:
@@ -22,6 +21,11 @@ from datetime import datetime
 from TweetScraper.items import Tweet
 
 logger = logging.getLogger(__name__)
+
+def mkdirs(dirs):
+    ''' Create `dirs` if not exist. '''
+    if not os.path.exists(dirs):
+        os.makedirs(dirs)
 
 class TweetScraper(CrawlSpider):
     name = 'TweetScraper'
@@ -34,7 +38,7 @@ class TweetScraper(CrawlSpider):
         if not top_tweet:
             self.url = self.url + "&f=tweets"
 
-        self.url = self.url + "&q=%s&src=typed&max_position=%s"
+        self.url = self.url + "&q=%s&src=typd&max_position=%s"
 
         path_here = os.path.abspath(os.path.dirname(__file__))
         cache_directory = path_here + '/../../.caches'
@@ -47,6 +51,7 @@ class TweetScraper(CrawlSpider):
 
     def start_requests(self):
         url = self.url % (quote(' '.join(self.query.split(','))), self.min_position)
+        print("starting url", url)
         yield http.Request(url, callback=self.parse_page)
 
     def closed(self, reason):
@@ -60,7 +65,7 @@ class TweetScraper(CrawlSpider):
             yield item
 
         # get next page
-        self.min_position = data['min_position']
+        self.min_position = quote(data['min_position'])
         url = self.url % (quote(' '.join(self.query.split(','))), self.min_position)
         url += '&oldest_unread_id=0&reset_error_state=false'
         yield http.Request(url, callback=self.parse_page)
@@ -78,7 +83,7 @@ class TweetScraper(CrawlSpider):
             try:
                 tweet = Tweet()
 
-                tweet['usernameTweet'] = item.xpath('.//span[@class="username u-dir"]/b/text()').extract()[0]
+                tweet['usernameTweet'] = item.xpath('.//span[@class="username u-dir u-textTruncate"]/b/text()').extract()[0]
 
                 ID = item.xpath('.//@data-tweet-id').extract()
                 if not ID:
@@ -90,11 +95,7 @@ class TweetScraper(CrawlSpider):
                     item.xpath('.//div[@class="js-tweet-text-container"]/p//text()|.//div[@class="js-tweet-text-container"]/p//img/@alt').extract()).replace(' # ',
                                                                                                         '#').replace(
                     ' @ ', '@')
-                # NOTE Allways the query search is the first index
-                if self.query.split(',')[0] not in tweet['text'] and self.query.split(',')[0] :
-                    # If query is not empty and not in text, we ignore the tweet
-                    continue
-
+               
                 if detect_langs(tweet['text'])[0].lang != self.lang:
                     # If language is not correctly detected, we ignore it
                     continue

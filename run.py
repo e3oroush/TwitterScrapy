@@ -19,9 +19,9 @@ parser.add_argument('--query', help="Search query of twitter advanced search. \
             The query search should not contain ',' character  ", default='')
 parser.add_argument('--lang', help='Language of retrieved tweets.', default='en')
 parser.add_argument('--since', help='Starting date of period in search, pattern: yyyy-mm-dd',
- default='2014-01-01')
+ default='2013-01-01')
 parser.add_argument('--until', help='End date of period in search, pattern: yyyy-mm-dd',
- default='2017-12-31')
+ default=None)
 parser.add_argument('--fromAccount', help='Tweets from account name')
 parser.add_argument('--toAccount', help='Tweets replying to the account')
 parser.add_argument('--maxTweets', help='Max number of retrieved tweets', type=int, default=-1)
@@ -51,9 +51,6 @@ if __name__ == '__main__':
         defaults = dict(config.items("Defaults"))
         parser.set_defaults(**defaults)
         args = parser.parse_args()
-    if len(sys.argv) < 2:
-        parser.print_help()
-        sys.exit()
     since = args.since
     until = args.until
     from_account = args.fromAccount
@@ -63,6 +60,8 @@ if __name__ == '__main__':
     settings['TEXT_ONLY'] = args.textOnly
     process = CrawlerProcess(get_project_settings())
     since = datetime.datetime(*[int(i) for i in since.split('-')])
+    if not until:
+        until = datetime.datetime.now().strftime("%Y-%m-%d")
     until = datetime.datetime(*[int(i) for i in until.split('-')])
     diff = (until - since).days
     days_in_process = math.ceil(diff/args.numberOfConcurrentCrawler)
