@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from scrapy.exceptions import DropItem
-from scrapy.conf import settings
 from scrapy.exceptions import CloseSpider
 import logging
 import json
@@ -10,6 +9,8 @@ from subprocess import call
 from TweetScraper.items import Tweet, TextTweet
 from TweetScraper.utils import mkdirs
 import sys
+from scrapy.utils.project import get_project_settings
+SETTINGS = get_project_settings() 
 # from scrapy.contrib.closespider import CloseSpider
 
 
@@ -18,17 +19,17 @@ logger = logging.getLogger(__name__)
 class SaveToFilePipeline(object):
     ''' pipeline that save data to disk '''
     def __init__(self):
-        self.saveTweetPath = settings['SAVE_TWEET_PATH']
+        self.saveTweetPath = SETTINGS['SAVE_TWEET_PATH']
         self.tweet_counts = 0
         mkdirs(self.saveTweetPath) # ensure the path exists
 
 
     def process_item(self, item, spider):
         if isinstance(item, Tweet):
-            savePath = os.path.join(self.saveTweetPath, settings['OUTPUT_FILENAME'])
+            savePath = os.path.join(self.saveTweetPath, SETTINGS['OUTPUT_FILENAME'])
             # self.save_to_file(item, savePath)
             # print("-----------------" + item)
-            if(bool(settings['TEXT_ONLY'])):
+            if(bool(SETTINGS['TEXT_ONLY'])):
                 tweet = TextTweet()
                 tweet['ID'], tweet['text'] = item['ID'], item['text']
                 self.save_to_file(tweet, savePath)
@@ -47,7 +48,7 @@ class SaveToFilePipeline(object):
             json.dump(dict(item), f, ensure_ascii=False)
             f.write('\n')
         self.tweet_counts += 1
-        if(self.tweet_counts == int(settings['MAX_TWEETS'])):
+        if(self.tweet_counts == int(SETTINGS['MAX_TWEETS'])):
             call(['kill', '9', '%d'%os.getpid()])
             
 

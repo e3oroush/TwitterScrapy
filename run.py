@@ -6,10 +6,11 @@ Email: sentalysa@gmail.com
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 from TweetScraper.spiders.TweetCrawler import TweetScraper
-from scrapy.conf import settings
+from scrapy.utils.project import get_project_settings
 import argparse, datetime, math,sys
 import configparser 
 
+SETTINGS = get_project_settings() 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--outputFilename', 
@@ -55,9 +56,9 @@ if __name__ == '__main__':
     until = args.until
     from_account = args.fromAccount
     to_account = args.toAccount
-    settings['OUTPUT_FILENAME'] = str(args.outputFilename)
-    settings['MAX_TWEETS'] = args.maxTweets
-    settings['TEXT_ONLY'] = args.textOnly
+    SETTINGS['OUTPUT_FILENAME'] = str(args.outputFilename)
+    SETTINGS['MAX_TWEETS'] = args.maxTweets
+    SETTINGS['TEXT_ONLY'] = args.textOnly
     process = CrawlerProcess(get_project_settings())
     since = datetime.datetime(*[int(i) for i in since.split('-')])
     if not until:

@@ -1,6 +1,5 @@
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.selector import Selector
-from scrapy.conf import settings
 from scrapy import http
 import re, os, sys
 import json
@@ -9,7 +8,6 @@ import logging
 import sys
 import os
 import urllib
-from langdetect import detect_langs
 
 try:
     from urllib import quote  # Python 2.X
@@ -96,9 +94,9 @@ class TweetScraper(CrawlSpider):
                                                                                                         '#').replace(
                     ' @ ', '@')
                
-                if detect_langs(tweet['text'])[0].lang != self.lang:
-                    # If language is not correctly detected, we ignore it
-                    continue
+                # if detect_langs(tweet['text'])[0].lang != self.lang:
+                #     # If language is not correctly detected, we ignore it
+                #     continue
                 
                 ### get meta data
                 tweet['url'] = item.xpath('.//@data-permalink-path').extract()[0]
